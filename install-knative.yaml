@@ -1,0 +1,43 @@
+#install serving
+kubectl apply -f https://github.com/knative/serving/releases/download/v0.23.0/serving-crds.yaml
+
+kubectl apply -f https://github.com/knative/serving/releases/download/v0.23.0/serving-core.yaml
+
+#install Contour
+kubectl apply -f https://github.com/knative/net-contour/releases/download/v0.23.0/contour.yaml
+
+kubectl apply -f https://github.com/knative/net-contour/releases/download/v0.23.0/net-contour.yaml
+
+kubectl patch configmap/config-network \
+  --namespace knative-serving \
+  --type merge \
+  --patch '{"data":{"ingress.class":"contour.ingress.networking.knative.dev"}}'
+
+# update envoy service to match ports in kind 
+kubectl patch svc/envoy \
+  --namespace contour-external \
+  --type='json' \
+  -p='[
+    {"op": "replace", "path": "/spec/ports/0/nodePort", "value":31080},
+    {"op": "replace", "path": "/spec/ports/1/nodePort", "value":31443},
+    {"op": "replace", "path": "/spec/type", "value":"NodePort"}
+  ]'
+
+
+# Replace knative.example.com with your domain suffix
+kubectl patch configmap/config-domain \
+  --namespace knative-serving \
+  --type merge \
+  --patch '{"data":{"clay.kauz":""}}'
+
+
+# install eventing
+kubectl apply -f https://github.com/knative/eventing/releases/download/v0.23.0/eventing-crds.yaml
+
+kubectl apply -f https://github.com/knative/eventing/releases/download/v0.23.0/eventing-core.yaml
+
+# install in memory default channel
+kubectl apply -f https://github.com/knative/eventing/releases/download/v0.23.0/in-memory-channel.yaml
+
+# install in memory broker implementation
+kubectl apply -f https://github.com/knative/eventing/releases/download/v0.23.0/mt-channel-broker.yaml
