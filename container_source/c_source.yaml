@@ -1,0 +1,23 @@
+---
+apiVersion: sources.knative.dev/v1
+kind: ContainerSource
+metadata:
+  name: example
+spec:
+  template:
+    spec:
+      containers:
+        - image: csource-image
+          name: csource
+          args:
+            - --period=1
+          env:
+            - name: POD_NAME
+              value: "csource pod"
+            - name: POD_NAMESPACE
+              value: "default"
+  sink:
+    ref:
+      apiVersion: flows.knative.dev/v1
+      kind: Sequence
+      name: sequence
